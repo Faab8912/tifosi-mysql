@@ -1,0 +1,241 @@
+TIFOSI - ANALYSE DU MODELE ENTITE-RELATION
+
+1. DIAGRAMME ER (ENTITE-RELATION)
+
+ingredient ----[0,n]----[comprend]----[0,n]---- focaccia
+                                                    |
+                                              [1,1] | 
+marque                                          menu
+  |                                               |
+[1,n] |                                      [0,n] | 
+  |                                               |
+boisson ----[0,n]----[contient]--------+
+
+client ----------[achete]--------[0,n] menu
+
+2. DESCRIPTION DES ENTITES
+
+ENTITE MARQUE
+Attributs:
+  - id_marque (INT, PK, AUTO_INCREMENT)
+  - nom (VARCHAR 100, NOT NULL, UNIQUE)
+Donnees: 4 marques (Coca-cola, Pepsico, Monster, Cristalline)
+Cardinalite: 1 marque -> plusieurs boissons (1,n)
+
+ENTITE INGREDIENT
+Attributs:
+  - id_ingredient (INT, PK, AUTO_INCREMENT)
+  - nom (VARCHAR 100, NOT NULL, UNIQUE)
+Donnees: 25 ingredients
+  1. Ail, 2. Ananas, 3. Artichaut, 4. Bacon, 5. Base Tomate
+  6. Base creme, 7. Champignon, 8. Chevre, 9. Cresson, 10. Emmental
+  11. Gorgonzola, 12. Jambon cuit, 13. Jambon fume, 14. Oeuf, 15. Oignon
+  16. Olive noire, 17. Olive verte, 18. Parmesan, 19. Piment, 20. Poivre
+  21. Pomme de terre, 22. Raclette, 23. Salami, 24. Tomate cerise, 25. Mozarella
+Cardinalite: Chaque ingredient -> plusieurs focaccias (0,n)
+
+ENTITE FOCACCIA
+Attributs:
+  - id_focaccia (INT, PK, AUTO_INCREMENT)
+  - nom (VARCHAR 100, NOT NULL, UNIQUE)
+  - prix (DECIMAL 5,2, NOT NULL, CHECK prix > 0)
+Donnees: 8 focaccias
+  1. Mozaccia (9.80), 2. Gorgonzollaccia (10.80), 3. Raclaccia (8.90)
+  4. Emmentalaccia (9.80), 5. Tradizione (8.90), 6. Hawaienne (11.20)
+  7. Americaine (10.80), 8. Paysanne (12.80)
+Prix moyen: 10.25 euros
+Cardinalite: Chaque focaccia -> plusieurs ingredients (1,n)
+
+ENTITE BOISSON
+Attributs:
+  - id_boisson (INT, PK, AUTO_INCREMENT)
+  - nom (VARCHAR 100, NOT NULL, UNIQUE)
+  - id_marque (INT, FK, NOT NULL)
+Donnees: 12 boissons
+  Coca-cola: 5 boissons | Pepsico: 4 boissons | Monster: 2 boissons | Cristalline: 1 boisson
+Cardinalite: Chaque marque -> plusieurs boissons (1,n)
+
+ENTITE MENU
+Attributs:
+  - id_menu (INT, PK, AUTO_INCREMENT)
+  - nom (VARCHAR 100, NOT NULL, UNIQUE)
+  - prix (DECIMAL 5,2, NOT NULL, CHECK prix > 0)
+  - id_focaccia (INT, FK, NOT NULL)
+Donnees: 8 menus (1 par focaccia)
+Cardinalite: Chaque focaccia -> 1 menu (1,1)
+
+ENTITE CLIENT
+Attributs:
+  - id_client (INT, PK, AUTO_INCREMENT)
+  - nom (VARCHAR 100, NOT NULL)
+  - email (VARCHAR 255, NOT NULL, UNIQUE)
+  - code_postal (INT, NOT NULL, CHECK 5 digits)
+Donnees: 5 clients
+  1. Jean Dupont (75001), 2. Marie Martin (75002), 3. Pierre Bernard (75003)
+  4. Sophie Moreau (75004), 5. Luc Blanc (75005)
+Cardinalite: Chaque client -> plusieurs achats (0,n)
+
+3. RELATIONS D'ASSOCIATION
+
+RELATION COMPREND (INGREDIENT - FOCACCIA)
+Definition: Lie les ingredients aux focaccias (many-to-many)
+Donnees: 73 relations
+Cardinalite: Un ingredient (0,n) <-> plusieurs focaccias (0,n)
+Actions: ON DELETE CASCADE, ON UPDATE CASCADE
+Exemple: L'ail est dans 4 focaccias
+
+RELATION CONTIENT (MENU - BOISSON)
+Definition: Lie les boissons aux menus (many-to-many)
+Donnees: 9 relations
+Cardinalite: Un menu (0,n) <-> plusieurs boissons (0,n)
+Actions: ON DELETE CASCADE, ON UPDATE CASCADE
+Exemple: Menu Mozaccia contient 2 boissons
+
+RELATION ACHETE (CLIENT - MENU)
+Definition: Lie les achats des clients aux menus (many-to-many avec timestamp)
+Donnees: 10 achats
+Cardinalite: Un client (0,n) <-> plusieurs menus (0,n)
+Attribut supplementaire: date_achat (DATETIME)
+Actions: ON DELETE CASCADE, ON UPDATE CASCADE
+
+4. CARDINALITES DETAILLEES
+
+ingredient -----[0,n]----- focaccia
+  - Un ingredient CAN etre dans plusieurs focaccias
+  - Une focaccia MUST avoir plusieurs ingredients
+  - Exemple: L'ail est dans Mozaccia, Gorgonzollaccia, Raclaccia, Paysanne
+
+focaccia -----[1,1]----- menu
+  - Une focaccia CAN etre composee d'un menu
+  - Un menu MUST etre compose d'exactement une focaccia
+
+menu -----[0,n]----- boisson
+  - Un menu CAN contenir plusieurs boissons
+  - Une boisson CAN etre dans plusieurs menus
+
+boisson -----[1,1]----- marque
+  - Une boisson MUST appartenir a exactement une marque
+  - Une marque CAN avoir plusieurs boissons
+
+client -----[0,n]----- menu
+  - Un client CAN acheter plusieurs menus
+  - Un menu CAN etre achete par plusieurs clients
+
+5. ANALYSE DES DONNEES
+
+VOLUMES:
+  - Marques: 4
+  - Ingredients: 25 (dont 23 utilises = 92%)
+  - Focaccias: 8
+  - Boissons: 12
+  - Menus: 8
+  - Clients: 5
+  - Relations Comprend: 73
+  - Relations Contient: 9
+  - Relations Achete: 10
+  - TOTAL: 154 enregistrements
+
+UTILISATION INGREDIENTS:
+  - Tous les focaccias contiennent du champignon
+  - Tous les focaccias contiennent du cresson, poivre, parmesan
+  - 4 focaccias contiennent de l'ail
+  - 2 ingredients inutilises: Salami, Tomate cerise
+
+DISTRIBUTION PRIX:
+  - Prix min: 8.90 euros (Raclaccia, Tradizione)
+  - Prix max: 12.80 euros (Paysanne)
+  - Ecart: 3.90 euros
+  - Moyenne: 10.25 euros
+
+INGREDIENTS PAR FOCACCIA:
+  - Minimum: 7 (Raclaccia, Emmentalaccia)
+  - Maximum: 12 (Paysanne)
+  - Moyenne: 9.125
+
+DISTRIBUTION BOISSONS:
+  - Coca-cola: 42% (5 boissons)
+  - Pepsico: 33% (4 boissons)
+  - Monster: 17% (2 boissons)
+  - Cristalline: 8% (1 boisson)
+
+6. NORMALISATION
+
+FORMES NORMALES APPLIQUEES:
+
+1ère Forme Normale (1NF):
+  - Toutes les relations sont en 1NF
+  - Pas d'attributs multivalues
+  - Chaque cellule contient une valeur atomique
+  - Les many-to-many sont representes par des tables de jointure
+
+2ème Forme Normale (2NF):
+  - Toutes les dependances non-cles dependent de la cle primaire complete
+  - Pas de dependances partielles
+  - Exemple: Le nom de la marque depend de id_marque
+
+3ème Forme Normale (3NF):
+  - Pas de dependances transitives
+  - Les attributs ne dependent que de la cle primaire
+  - Exemple: id_boisson -> id_marque -> nom_marque (pas direct)
+
+La base de donnees est en 3NF (Forme Normale de Boyce-Codd)
+
+7. INTEGRITE REFERENTIELLE
+
+Contraintes de Cles Etrangeres:
+
+boisson.id_marque -> marque.id_marque
+  ON DELETE: RESTRICT | ON UPDATE: CASCADE
+
+menu.id_focaccia -> focaccia.id_focaccia
+  ON DELETE: CASCADE | ON UPDATE: CASCADE
+
+comprend.id_ingredient -> ingredient.id_ingredient
+  ON DELETE: CASCADE | ON UPDATE: CASCADE
+
+comprend.id_focaccia -> focaccia.id_focaccia
+  ON DELETE: CASCADE | ON UPDATE: CASCADE
+
+contient.id_menu -> menu.id_menu
+  ON DELETE: CASCADE | ON UPDATE: CASCADE
+
+contient.id_boisson -> boisson.id_boisson
+  ON DELETE: CASCADE | ON UPDATE: CASCADE
+
+achete.id_client -> client.id_client
+  ON DELETE: CASCADE | ON UPDATE: CASCADE
+
+achete.id_menu -> menu.id_menu
+  ON DELETE: CASCADE | ON UPDATE: CASCADE
+
+8. INDEX CREES
+
+Index Primaires (Cles Primaires):
+  - idx_marque, idx_ingredient, idx_focaccia, idx_boisson
+  - idx_menu, idx_client
+  - idx_comprend, idx_contient, idx_achete
+
+Index Secondaires (Optimisation):
+  - idx_focaccia_nom (nom)
+  - idx_ingredient_nom (nom)
+  - idx_boisson_nom (nom)
+  - idx_client_email (email)
+  - idx_boisson_marque (id_marque)
+  - idx_menu_focaccia (id_focaccia)
+  - idx_comprend_ingredient (id_ingredient)
+  - idx_comprend_focaccia (id_focaccia)
+  - idx_contient_menu (id_menu)
+  - idx_contient_boisson (id_boisson)
+  - idx_achete_client (id_client)
+  - idx_achete_menu (id_menu)
+
+9. RESUME FINAL
+
+Volume total de donnees: 154 enregistrements
+Nombre de tables: 9 (6 entites + 3 relations)
+Nombre de cles etrangeres: 8
+Nombre d'index: 20
+Normalisation: 3NF
+
+Cette base de donnees est bien structuree, securisee et optimisee pour 
+un environnement de production.
